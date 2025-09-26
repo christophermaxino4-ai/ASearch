@@ -1,0 +1,150 @@
+package myPackage;
+
+import java.io.*;
+import java.util.*;
+
+public class Main {
+
+    static class Node implements Comparable<Node> {
+        int row, col, g, h;
+        Node parent;
+
+        Node(int row, int col, int g, int h, Node parent) {
+            this.row = row;
+            this.col = col;
+            this.g = g;
+            this.h = h;
+            this.parent = parent;
+        }
+
+        int f() {
+            return g + h;
+        }
+
+        @Override
+        public int compareTo(Node other) {
+            return Integer.compare(this.f(), other.f());
+        }
+    }
+
+    public static void main(String[] args) {
+        String gridFile = "grid.txt"; 
+
+        int[][] grid = loadGrid(gridFile);
+
+        if (grid == null) {
+            System.out.println("Error: Could not load grid file.");
+            return;
+        }
+
+        System.out.println("Input grid:");
+        printGrid(grid);
+
+        int[] start = {0, 0};
+        int[] goal = {grid.length - 1, grid[0].length - 1};
+
+        List<int[]> path = aStar(grid, start, goal);
+
+        if (path == null) {
+            System.out.println("No path found.");
+        } else {
+            System.out.println("\nPath found:");
+            for (int[] p : path) {
+                System.out.println("(" + p[0] + "," + p[1] + ")");
+            }
+        }
+    }
+
+    
+    private static int[][] loadGrid(String filename) {
+        List<int[]> rows = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] tokens = line.trim().split("\\s+");
+                int[] row = new int[tokens.length];
+                for (int i = 0; i < tokens.length; i++) {
+                    row[i] = Integer.parseInt(tokens[i]);
+                }
+                rows.add(row);
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading file: " + e.getMessage());
+            return null;
+        }
+        return rows.toArray(new int[0][]);
+    }
+
+    
+    private static void printGrid(int[][] grid) {
+        for (int[] row : grid) {
+            for (int val : row) {
+                System.out.print(val + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    
+    private static List<int[]> aStar(int[][] grid, int[] start, int[] goal) {
+        int rows = grid.length;
+        int cols = grid[0].length;
+
+        boolean[][] closed = new boolean[rows][cols];
+        PriorityQueue<Node> open = new PriorityQueue<>();
+
+        Node startNode = new Node(start[0], start[1], 0, heuristic(start, goal), null);
+        open.add(startNode);
+
+        int[][] directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1}, 
+            {-1, -1}, {-1, 1}, {1, -1}, {1, 1} 
+        };
+
+        while (!open.isEmpty()) {
+            Node current = open.poll();
+
+            if (current.row == goal[0] && current.col == goal[1]) {
+                return reconstructPath(current);
+            }
+
+            closed[current.row][current.col] = true;
+
+            for (int[] d : directions) {
+                int nr = current.row + d[0];
+                int nc = current.col + d[1];
+
+                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+                if (closed[nr][nc]) continue;
+
+                int cell = grid[nr][nc];
+                if (cell == 1) continue; 
+                int cost = (cell == 0) ? 1 : cell; 
+
+                int g = current.g + cost;
+                int h = heuristic(new int[]{nr, nc}, goal);
+
+                Node neighbor = new Node(nr, nc, g, h, current);
+                open.add(neighbor);
+            }
+        }
+
+        return null; 
+    }
+
+    
+    private static int heuristic(int[] a, int[] b) {
+        return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+    }
+
+    
+    private static List<int[]> reconstructPath(Node node) {
+        List<int[]> path = new ArrayList<>();
+        while (node != null) {
+            path.add(new int[]{node.row, node.col});
+            node = node.parent;
+        }
+        Collections.reverse(path);
+        return path;
+    }
+}
