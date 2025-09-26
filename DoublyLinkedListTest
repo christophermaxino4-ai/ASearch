@@ -1,0 +1,42 @@
+package myPackage;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class DoublyLinkedListTest {
+
+    @Test
+    public void testAddFirstAndSize() {
+        DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
+        list.addFirst(10);
+        list.addFirst(20);
+        list.addFirst(30);
+
+        assertEquals(3, list.size());
+    }
+
+    @Test
+    public void testAddLastAndSize() {
+        DoublyLinkedList<String> list = new DoublyLinkedList<>();
+        list.addLast("A");
+        list.addLast("B");
+        list.addLast("C");
+
+        assertEquals(3, list.size());
+    }
+
+    @Test
+    public void testAddFirstAndAddLastOrder() {
+        DoublyLinkedList<Integer> list = new DoublyLinkedList<>();
+        list.addFirst(1);   
+        list.addLast(2);    
+        list.addFirst(0);   
+
+        assertEquals(3, list.size());
+    }
+
+    @Test
+    public void testEmptyListSize() {
+        DoublyLinkedList<Double> list = new DoublyLinkedList<>();
+        assertEquals(0, list.size());
+    }
+}
